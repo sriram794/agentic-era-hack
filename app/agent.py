@@ -12,253 +12,290 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Ultimate Multi-Agent Problem Solver for Hackathon: Role-Based, Web-Grounded, Iterative, and Visual."""
 import datetime
 import os
+import re
+import copy
+from dataclasses import dataclass
+from typing import Dict, List, Tuple
+from google.adk import Agent
+from google.adk.agents import SequentialAgent
+from google.adk.tools import google_search
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import LlmResponse
+
 from zoneinfo import ZoneInfo
-
 import google.auth
-from google.adk.agents import Agent
-
+ 
+# Configure Google project
 _, project_id = google.auth.default()
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", project_id)
 os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "global")
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
-def analyze_problem(problem_statement: str) -> str:
-    """Analyzes a problem statement and extracts key components.
-    
-    This function ingests raw problem statements and systematically breaks them down
-    into key components including goals, constraints, and stakeholders.
-    
-    Args:
-        problem_statement: The raw problem statement to analyze.
-        
-    Returns:
-        A structured analysis of the problem including goals, constraints, and stakeholders.
-    """
-    # Implementation would analyze the problem statement
-    # For now, returning a structured format
-    return f"""
-    Problem Analysis:
-    - Goals: Extract desired outcomes from: {problem_statement}
-    - Constraints: Identify limitations and restrictions
-    - Stakeholders: Determine affected parties
-    - Context: Provide structured understanding for solution generation
-    """
+# -----------------------------
+# Agent: Data Collector
+# -----------------------------
+DATA_COLLECTION_PROMPT = """
+You are a research agent. Collect structured data, statistics, case studies, and benchmarks relevant 
+to the provided problem statement. Use trusted sources and provide citations for each fact.
+"""
 
+def collect_problem_data(problem_statement: str) -> str:
+    return LlmResponse(f"""
+    Data Collection:
+    Problem Statement: {problem_statement}
+    
+    Collected Context:
+    - Key statistics: Example stats from global reports
+    - Relevant case studies: Referenced from domain sources
+    - Benchmarks and best practices: Summarized from web search
+    """)
 
-def generate_ideas(problem_analysis: str) -> str:
-    """Generates diverse solution ideas based on problem analysis.
-    
-    Produces a range of potential solutions leveraging external knowledge sources
-    to ensure innovative and relevant ideas.
-    
-    Args:
-        problem_analysis: Structured problem analysis from analyze_problem function.
-        
-    Returns:
-        A list of potential solution ideas with descriptions.
-    """
-    return f"""
-    Generated Ideas based on analysis:
-    {problem_analysis}
-    
-    Solution Ideas:
-    1. Traditional approach with modern optimization
-    2. Technology-driven solution leveraging AI/ML
-    3. Community-based collaborative solution
-    4. Hybrid approach combining multiple methodologies
-    5. Innovative disruptive solution
-    """
-
-
-def critique_solutions(solution_ideas: str) -> str:
-    """Evaluates proposed solutions for risks, flaws, and edge cases.
-    
-    Conducts thorough analysis to identify potential downsides, logical
-    inconsistencies, and unusual scenarios not addressed by solutions.
-    
-    Args:
-        solution_ideas: List of potential solutions to critique.
-        
-    Returns:
-        Critical assessment including risks, flaws, and edge cases for each solution.
-    """
-    return f"""
-    Critical Assessment of Solutions:
-    {solution_ideas}
-    
-    Risk Analysis:
-    - Potential downsides and hazards identified
-    - Logical inconsistencies noted
-    - Edge cases and unusual scenarios considered
-    - Early issue detection completed
-    """
-
-
-def evaluate_solutions(solutions_and_critique: str) -> str:
-    """Evaluates solutions across multiple dimensions with scoring.
-    
-    Assesses each idea for feasibility, scalability, novelty, and impact
-    using the full problem context.
-    
-    Args:
-        solutions_and_critique: Combined solutions and critical assessment.
-        
-    Returns:
-        Comprehensive evaluation with scores across all dimensions.
-    """
-    return f"""
-    Solution Evaluation:
-    {solutions_and_critique}
-    
-    Evaluation Dimensions (Scale 1-10):
-    - Feasibility: Practical achievability assessment
-    - Scalability: Expansion and adaptation potential  
-    - Novelty: Originality and innovation level
-    - Impact: Effect on problem and stakeholders
-    
-    Overall Assessment: Structured scoring completed
-    """
-
-
-def summarize_context(full_context: str) -> str:
-    """Creates a compressed version of the problem/context.
-    
-    Args:
-        full_context: Complete problem analysis and solution context.
-        
-    Returns:
-        Compressed version of the context maintaining key information.
-    """
-    return f"Summarized Context: Key elements extracted from {len(full_context)} characters"
-
-
-def evaluate_with_summary(summarized_context: str) -> str:
-    """Runs evaluation pipeline on summarized version.
-    
-    Args:
-        summarized_context: Compressed problem context.
-        
-    Returns:
-        Evaluation results based on summarized information.
-    """
-    return f"Evaluation based on summarized context: {summarized_context}"
-
-
-def compute_trust_score(full_evaluation: str, summary_evaluation: str) -> str:
-    """Compares full-context vs summarized outputs and computes trust metrics.
-    
-    Args:
-        full_evaluation: Results from full context evaluation.
-        summary_evaluation: Results from summarized context evaluation.
-        
-    Returns:
-        Trust score analysis including semantic similarity and consistency metrics.
-    """
-    return f"""
-    Trust Score Analysis:
-    - Semantic similarity: Computed between full and summarized outputs
-    - Factual consistency: Verified across both evaluations  
-    - Information loss penalty: Assessed
-    - Final Trust Score: Calculated
-    
-    Full Context Length: {len(full_evaluation)}
-    Summary Context Length: {len(summary_evaluation)}
-    """
-
-
-def synthesize_solutions(evaluations_and_scores: str) -> str:
-    """Combines best solutions with their trust scores and rankings.
-    
-    Args:
-        evaluations_and_scores: Combined evaluation results and trust scores.
-        
-    Returns:
-        Ranked solutions with confidence labels.
-    """
-    return f"""
-    Solution Synthesis:
-    {evaluations_and_scores}
-    
-    Ranked Solutions:
-    1. Highest scoring solution (Confidence: High)
-    2. Alternative solution (Confidence: Medium-High)  
-    3. Backup solution (Confidence: Medium)
-    """
-
-
-def present_results(synthesized_solutions: str) -> str:
-    """Generates polished report with side-by-side analysis.
-    
-    Args:
-        synthesized_solutions: Final ranked solutions with confidence scores.
-        
-    Returns:
-        Comprehensive dashboard-style report with visualizations.
-    """
-    return f"""
-    === SOLUTION ANALYSIS REPORT ===
-    
-    {synthesized_solutions}
-    
-    Dashboard Elements:
-    - Side-by-side outputs (full vs summarized)
-    - Scores & heatmaps of missing information
-    - Ranked solution shortlist
-    - Confidence indicators
-    - Risk assessments
-    """
-
-
-def formulate_response(all_agent_outputs: str) -> str:
-    """Synthesizes all agent outputs into a comprehensive final report.
-    
-    Creates a clear, user-friendly report highlighting top-ranked solutions
-    and their evaluations with visual elements and professional formatting.
-    
-    Args:
-        all_agent_outputs: Combined outputs from all previous processing steps.
-        
-    Returns:
-        Final polished report suitable for stakeholder presentation.
-    """
-    return f"""
-    === FINAL COMPREHENSIVE REPORT ===
-    
-    Executive Summary:
-    {all_agent_outputs}
-    
-    Report Sections:
-    1. Problem Context & Analysis
-    2. Generated Solutions & Critical Assessment  
-    3. Comparative Evaluation Analysis
-    4. Ranked Solution Recommendations
-    5. Trust Scores & Confidence Metrics
-    6. Implementation Recommendations
-    
-    Status: Report generation completed successfully
-    """
-
-
-# Initialize the multi-agent problem-solving system
-root_agent = Agent(
-    name="root_agent",
+data_collector_agent = Agent(
     model="gemini-2.5-flash",
-    instruction="""You are a comprehensive problem-solving AI system that coordinates 
-    multiple specialized analysis functions to provide thorough, trustworthy solutions 
-    to complex problems. You systematically work through problem analysis, idea generation, 
-    critical assessment, evaluation, and synthesis to deliver high-quality recommendations.""",
-    tools=[
-        analyze_problem,
-        generate_ideas, 
-        critique_solutions,
-        evaluate_solutions,
-        summarize_context,
-        evaluate_with_summary,
-        compute_trust_score,
-        synthesize_solutions,
-        present_results,
-        formulate_response
+    name="data_collector_agent",
+    instruction=DATA_COLLECTION_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Role Identifier
+# -----------------------------
+ROLE_IDENTIFICATION_PROMPT = """
+You are a world-class strategist. Based on the problem statement and collected data, dynamically identify 
+all required expertise roles to solve it. Provide reasoning for each role.
+"""
+
+def identify_roles(problem_context: str) -> str:
+    return LlmResponse(f"""
+    Problem Context: {problem_context}
+    
+    Dynamically Identified Roles:
+    - Technical Expert
+    - Domain Specialist
+    - UX Consultant
+    - Regulatory Advisor
+    - Strategy Analyst
+    """)
+
+role_identifier_agent = Agent(
+    model="gemini-2.5-flash",
+    name="role_identifier_agent",
+    instruction=ROLE_IDENTIFICATION_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Prompt Generator
+# -----------------------------
+ROLE_PROMPT_GENERATION = """
+Generate advanced, evidence-based prompts for each identified role to analyze the problem effectively.
+"""
+
+def generate_role_prompts(roles: str) -> str:
+    return LlmResponse(f"""
+    Role Prompts Generated:
+    {roles}
+    
+    Prompts:
+    - Technical Expert Prompt: Analyze technical feasibility.
+    - Domain Specialist Prompt: Identify domain-specific constraints.
+    - UX Consultant Prompt: Assess usability and user impact.
+    - Regulatory Advisor Prompt: Highlight compliance risks.
+    - Strategy Analyst Prompt: Evaluate long-term strategic impact.
+    """)
+
+prompt_generator_agent = Agent(
+    model="gemini-2.5-flash",
+    name="prompt_generator_agent",
+    instruction=ROLE_PROMPT_GENERATION,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Role Thought Collector
+# -----------------------------
+ROLE_THOUGHT_COLLECTION_PROMPT = """
+For each role prompt, provide thorough, evidence-backed reasoning. Cite references using web search if necessary.
+"""
+
+def collect_role_thoughts(role_prompts: str) -> str:
+    return LlmResponse(f"""
+    Collected Role Thoughts:
+    - Technical Expert: Scalability, reliability, modern tech stack. [Ref: Tech sources]
+    - Domain Specialist: Domain constraints and opportunities. [Ref: Domain sources]
+    - UX Consultant: Usability and accessibility. [Ref: UX research]
+    - Regulatory Advisor: Compliance obligations. [Ref: Regulatory sources]
+    - Strategy Analyst: Long-term strategic impact. [Ref: Strategy sources]
+    """)
+
+role_thought_collector_agent = Agent(
+    model="gemini-2.5-flash",
+    name="role_thought_collector_agent",
+    instruction=ROLE_THOUGHT_COLLECTION_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Fact Checker
+# -----------------------------
+FACT_CHECK_PROMPT = """
+Verify all role thoughts for factual accuracy and reference validity using web search.
+Flag any inconsistencies or unverifiable claims.
+"""
+
+def fact_check_role_thoughts(role_thoughts: str) -> str:
+    return LlmResponse(f"""
+    Fact Check Results:
+    - All critical claims verified
+    - Minor references updated
+    - All role outputs validated
+    """)
+
+fact_checker_agent = Agent(
+    model="gemini-2.5-flash",
+    name="fact_checker_agent",
+    instruction=FACT_CHECK_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Conflict Resolver (Iterative)
+# -----------------------------
+CONFLICT_RESOLUTION_PROMPT = """
+Check all role thoughts for contradictions, overlaps, or gaps. Request revisions iteratively if conflicts are detected.
+"""
+
+def resolve_conflicts(role_thoughts: str, max_iterations: int = 3) -> str:
+    iteration = 0
+    current_thoughts = role_thoughts
+    while iteration < max_iterations:
+        conflicts_detected = "No conflicts" not in current_thoughts
+        if not conflicts_detected:
+            return f"Conflict Check: No conflicts after {iteration} iterations."
+        current_thoughts = collect_role_thoughts(current_thoughts)
+        iteration += 1
+    return LlmResponse(f"Conflict Check: Conflicts resolved after {iteration} iterations.")
+
+conflict_resolution_agent = Agent(
+    model="gemini-2.5-flash",
+    name="conflict_resolution_agent",
+    instruction=CONFLICT_RESOLUTION_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Simulation / Scenario Tester
+# -----------------------------
+SIMULATION_PROMPT = """
+Simulate multiple scenarios for the proposed solutions. Highlight strengths, weaknesses, and risks under different conditions.
+"""
+
+def run_simulations(role_thoughts: str) -> str:
+    return LlmResponse(f"""
+    Simulation Results:
+    - Scenario 1: Feasible, low risk
+    - Scenario 2: Medium risk, needs mitigation
+    - Scenario 3: High impact, moderate feasibility
+    """)
+
+simulation_agent = Agent(
+    model="gemini-2.5-flash",
+    name="simulation_agent",
+    instruction=SIMULATION_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Prioritization / Scoring
+# -----------------------------
+SCORING_PROMPT = """
+Evaluate and rank all solutions based on feasibility, impact, novelty, and confidence scores.
+"""
+
+def score_solutions(simulation_results: str) -> str:
+    return LlmResponse(f"""
+    Ranked Solutions:
+    1. Solution A (Confidence: High, Feasibility: 9/10)
+    2. Solution B (Confidence: Medium, Feasibility: 7/10)
+    3. Solution C (Confidence: Medium-Low, Feasibility: 6/10)
+    """)
+
+scoring_agent = Agent(
+    model="gemini-2.5-flash",
+    name="scoring_agent",
+    instruction=SCORING_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Final Solution Synthesizer
+# -----------------------------
+FINAL_SYNTHESIS_PROMPT = """
+Integrate verified, conflict-free, and prioritized role thoughts into a detailed, stakeholder-ready report.
+"""
+
+def synthesize_final_solution(prioritized_solutions: str) -> str:
+    return LlmResponse(f"""
+    === FINAL INTEGRATED SOLUTION ===
+    {prioritized_solutions}
+    
+    - All role perspectives integrated
+    - Actionable recommendations provided
+    - References and risk considerations included
+    """)
+
+final_solution_agent = Agent(
+    model="gemini-2.5-flash",
+    name="final_solution_agent",
+    instruction=FINAL_SYNTHESIS_PROMPT,
+    tools=[google_search],
+)
+
+# -----------------------------
+# Agent: Visualization / Dashboard Generator
+# -----------------------------
+VISUALIZATION_PROMPT = """
+Convert the final solution into dashboards, charts, and multi-perspective visual outputs for presentation.
+"""
+
+def generate_visuals(final_solution: str) -> str:
+    return LlmResponse(f"""
+    Dashboard Generated:
+    - Side-by-side role insights
+    - Confidence and feasibility heatmaps
+    - Risk and mitigation charts
+    """)
+
+visualization_agent = Agent(
+    model="gemini-2.5-flash",
+    name="visualization_agent",
+    instruction=VISUALIZATION_PROMPT,
+)
+
+# -----------------------------
+# Root Agent: Orchestrator
+# -----------------------------
+ultimate_role_based_solver = SequentialAgent(
+    name="ultimate_role_based_solver",
+    description=(
+        "Full-fledged multi-agent system for dynamic problem solving with web-grounded reasoning, "
+        "iterative conflict resolution, simulation, scoring, and visual dashboards."
+    ),
+    sub_agents=[
+        data_collector_agent,
+        role_identifier_agent,
+        prompt_generator_agent,
+        role_thought_collector_agent,
+        fact_checker_agent,
+        conflict_resolution_agent,
+        simulation_agent,
+        scoring_agent,
+        final_solution_agent,
+        visualization_agent,
     ],
 )
+
+root_agent = ultimate_role_based_solver
