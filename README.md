@@ -1,97 +1,224 @@
-# agenthub
+# AgentHub – Multi-Agent Problem Solver
 
-A base ReAct agent built with Google's Agent Development Kit (ADK)
-Agent generated with [`googleCloudPlatform/agent-starter-pack`](https://github.com/GoogleCloudPlatform/agent-starter-pack) version `0.14.1`
+AgentHub is a next-generation, multi-agent problem-solving platform built with Google's Agent Development Kit (ADK). It combines role-based AI orchestration with web-grounded research and iterative solution refinement. Designed for hackathons and production deployment, AgentHub dynamically identifies expertise roles, gathers evidence, and produces comprehensive outputs for real-world scenarios.
 
-## Project Structure
+---
 
-This project is organized as follows:
+## 🚀 Key Features
+
+- **Multi-Agent Orchestration:** Sophisticated agent coordination using Google ADK's SequentialAgent framework.
+- **Dynamic Role Identification:** Automatically determines the expert roles required for each problem.
+- **Web-Grounded Research:** Uses real-time Google Search for data collection and fact verification.
+- **Evidence-Based Analysis:** Structured insights with citations and benchmarks.
+- **Iterative Problem Solving:** Multi-stage refinement and validation.
+- **Cloud-Native Architecture:** Google Cloud Platform (GCP) ready with Vertex AI integration.
+- **Observability & Monitoring:** Logging, tracing, and analytics via BigQuery and OpenTelemetry.
+- **Production-Ready Deployment:** Terraform, Docker, CI/CD pipelines included.
+
+---
+
+## 🏗️ Architecture
 
 ```
 agenthub/
-├── app/                 # Core application code
-│   ├── agent.py         # Main agent logic
-│   ├── server.py        # FastAPI Backend server
-│   └── utils/           # Utility functions and helpers
-├── .cloudbuild/         # CI/CD pipeline configurations for Google Cloud Build
-├── deployment/          # Infrastructure and deployment scripts
-├── notebooks/           # Jupyter notebooks for prototyping and evaluation
-├── tests/               # Unit, integration, and load tests
-├── Makefile             # Makefile for common commands
-├── GEMINI.md            # AI-assisted development guide
-└── pyproject.toml       # Project dependencies and configuration
+├── app/
+│   ├── agent.py            # Multi-agent system core
+│   ├── server.py           # FastAPI backend (ADK integration)
+│   └── utils/
+│       ├── gcs.py          # GCP storage helpers
+│       ├── tracing.py      # OpenTelemetry integration
+│       └── typing.py       # Type definitions
+├── .cloudbuild/
+│   ├── deploy-to-prod.yaml
+│   ├── pr_checks.yaml
+│   └── staging.yaml
+├── deployment/
+│   ├── terraform/
+│   └── README.md
+├── notebooks/
+│   ├── adk_app_testing.ipynb
+│   └── evaluating_adk_agent.ipynb
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── load_test/
+├── Dockerfile
+├── Makefile
+├── pyproject.toml
+└── uv.lock
 ```
 
-## Requirements
+### Specialized Agents
 
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-- **Terraform**: For infrastructure deployment - [Install](https://developer.hashicorp.com/terraform/downloads)
-- **make**: Build automation tool - [Install](https://www.gnu.org/software/make/) (pre-installed on most Unix-based systems)
+- **Data Collector Agent:** Gathers structured data, stats, and benchmarks.
+- **Role Identifier Agent:** Detects which expert roles are needed.
+- **Prompt Generator Agent:** Crafts role-specific prompts.
+- **Role Thought Collector Agent:** Aggregates evidence-based reasoning per role.
+- **Fact Checker Agent:** Validates facts and references with web searches.
+- **Iterative Refiner Agent:** Improves solution quality in multiple passes.
+- **Visual Formatter Agent:** Presents results in actionable formats.
 
+---
 
-## Quick Start (Local Testing)
+## 🛠️ Technology Stack
 
-Install required packages and launch the local development environment:
+- **Backend/AI:** Google ADK, FastAPI, Vertex AI, Gemini 2.5 Flash, OpenTelemetry
+- **Cloud/Infra:** Google Cloud Platform, Cloud Run, BigQuery, Terraform, Docker
+- **Dev Tools:** uv, pytest, ruff, mypy, Jupyter
 
-```bash
-make install && make playground
+---
+
+## 📋 Prerequisites
+
+- Python 3.10+
+- uv (Python package manager)
+- Google Cloud SDK
+- Terraform
+- Docker (optional)
+- make
+
+---
+
+## 🚀 Quick Start
+
+### 1. Installation
+
+```sh
+git clone <repository-url>
+cd agenthub
+make install
 ```
 
-## Commands
+### 2. Interactive Playground
 
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `make install`       | Install all required dependencies using uv                                                  |
-| `make playground`    | Launch local development environment with backend and frontend - leveraging `adk web` command.|
-| `make backend`       | Deploy agent to Cloud Run (use `IAP=true` to enable Identity-Aware Proxy) |
-| `make local-backend` | Launch local development server |
-| `make test`          | Run unit and integration tests                                                              |
-| `make lint`          | Run code quality checks (codespell, ruff, mypy)                                             |
-| `make setup-dev-env` | Set up development environment resources using Terraform                         |
-| `uv run jupyter lab` | Launch Jupyter notebook                                                                     |
+```sh
+make playground
+```
+Visit [http://localhost:8501](http://localhost:8501) to chat with the multi-agent system and monitor agent interactions.
 
-For full command options and usage, refer to the [Makefile](Makefile).
+### 3. Local API Server
 
+```sh
+make local-backend
+```
+API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## Usage
+---
 
-This template follows a "bring your own agent" approach - you focus on your business logic, and the template handles everything else (UI, infrastructure, deployment, monitoring).
+## 🎯 Usage Example
 
-1. **Prototype:** Build your Generative AI Agent using the intro notebooks in `notebooks/` for guidance. Use Vertex AI Evaluation to assess performance.
-2. **Integrate:** Import your agent into the app by editing `app/agent.py`.
-3. **Test:** Explore your agent functionality using the Streamlit playground with `make playground`. The playground offers features like chat history, user feedback, and various input types, and automatically reloads your agent on code changes.
-4. **Deploy:** Set up and initiate the CI/CD pipelines, customizing tests as necessary. Refer to the [deployment section](#deployment) for comprehensive instructions. For streamlined infrastructure deployment, simply run `uvx agent-starter-pack setup-cicd`. Check out the [`agent-starter-pack setup-cicd` CLI command](https://googlecloudplatform.github.io/agent-starter-pack/cli/setup_cicd.html). Currently supports GitHub with both Google Cloud Build and GitHub Actions as CI/CD runners.
-5. **Monitor:** Track performance and gather insights using Cloud Logging, Tracing, and the Looker Studio dashboard to iterate on your application.
+**Problem Solving**
 
-The project includes a `GEMINI.md` file that provides context for AI tools like Gemini CLI when asking questions about your template.
+```python
+problem = """
+How can we reduce carbon emissions in urban transportation while maintaining economic viability and user satisfaction?
+"""
+```
 
+**API Call**
 
-## Deployment
+```python
+import requests
 
-> **Note:** For a streamlined one-command deployment of the entire CI/CD pipeline and infrastructure using Terraform, you can use the [`agent-starter-pack setup-cicd` CLI command](https://googlecloudplatform.github.io/agent-starter-pack/cli/setup_cicd.html). Currently supports GitHub with both Google Cloud Build and GitHub Actions as CI/CD runners.
+response = requests.post(
+    "http://localhost:8000/chat",
+    json={
+        "message": "Design a sustainable supply chain for electric vehicle batteries",
+        "session_id": "unique-session-id"
+    }
+)
+solution = response.json()
+```
 
-### Dev Environment
+---
 
-You can test deployment towards a Dev Environment using the following command:
+## 🧪 Testing
 
-```bash
-gcloud config set project <your-dev-project-id>
+```sh
+make test      # Run all tests
+make lint      # Lint, format, spell check, type check
+```
+
+---
+
+## 🚀 Deployment
+
+### Development (Cloud Run)
+
+```sh
+gcloud config set project YOUR_DEV_PROJECT_ID
 make backend
 ```
 
+### Production
 
-The repository includes a Terraform configuration for the setup of the Dev Google Cloud project.
-See [deployment/README.md](deployment/README.md) for instructions.
+- **Infra Setup:**  
+  `uvx agent-starter-pack setup-cicd`
+- **Manual Terraform:**  
+  `make setup-dev-env`
+- **Enable IAP (optional):**  
+  `make backend IAP=true`
 
-### Production Deployment
+**Environment Variables:**
 
-The repository includes a Terraform configuration for the setup of a production Google Cloud project. Refer to [deployment/README.md](deployment/README.md) for detailed instructions on how to deploy the infrastructure and application.
+```sh
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=global
+GOOGLE_GENAI_USE_VERTEXAI=True
+AGENT_ENGINE_SESSION_NAME=agenthub
+ALLOW_ORIGINS=https://yourdomain.com,http://localhost:3000
+```
 
+---
 
-## Monitoring and Observability
-> You can use [this Looker Studio dashboard](https://lookerstudio.google.com/reporting/46b35167-b38b-4e44-bd37-701ef4307418/page/tEnnC
-) template for visualizing events being logged in BigQuery. See the "Setup Instructions" tab to getting started.
+## 📊 Monitoring
 
-The application uses OpenTelemetry for comprehensive observability with all events being sent to Google Cloud Trace and Logging for monitoring and to BigQuery for long term storage.
+- **Logging/Tracing:** OpenTelemetry, Cloud Logging, Cloud Trace
+- **Analytics:** BigQuery
+- **Dashboards:** Use Looker Studio templates for agent metrics and system health
+
+---
+
+## 🔧 Configuration
+
+**Agent Model:**  
+Edit `app/agent.py` for agent settings.
+
+**FastAPI Middleware:**  
+Edit `app/server.py` to customize CORS, authentication, etc.
+
+---
+
+## 🔐 Security
+
+- Google Cloud IAM and Identity-Aware Proxy for authentication
+- API security via rate limiting and input validation
+- Google Secret Manager for secrets
+
+---
+
+## 🤝 Collaborators
+
+- **sriram.k@prodapt.com**
+- **saketh.gv@prodapt.com**
+- **ishwarya.ms@prodapt.com**
+- **srisusharitha.k@prodapt.com**
+- **youvashri.j@prodapt.com**
+
+---
+
+## 📚 Resources
+
+- Google ADK Documentation
+- Vertex AI Documentation
+- Notebooks in `/notebooks/`
+- [Google Cloud AI Community](https://cloud.google.com/community)
+- [Agent Development Kit on GitHub](https://github.com/google/agent-development-kit)
+
+---
+
+## 🙏 Acknowledgments
+
+Thanks to Google Cloud for the ADK, the open-source community, and all contributors.
+
+**Built with 💡 by the AgentHub team**
