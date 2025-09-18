@@ -199,11 +199,11 @@ Edit `app/server.py` to customize CORS, authentication, etc.
 
 ## 🤝 Collaborators
 
-- **sriram.k@prodapt.com**
-- **saketh.gv@prodapt.com**
-- **ishwarya.ms@prodapt.com**
-- **srisusharitha.k@prodapt.com**
-- **youvashri.j@prodapt.com**
+- **Karanam Sri Ram**
+- **Saketh GV**
+- **Ishwarya MS**
+- **Sri Susharitha K**
+- **Youvashri J**
 
 ---
 
